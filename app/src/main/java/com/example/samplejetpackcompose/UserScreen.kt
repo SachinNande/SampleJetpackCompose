@@ -1,5 +1,6 @@
 package com.example.samplejetpackcompose
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,59 +19,33 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.samplejetpackcompose.data.User
 import com.example.samplejetpackcompose.utils.UiStates
 import com.example.samplejetpackcompose.viewModel.UserViewModel
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
-import java.net.URL
 
 @Composable
-fun UserScreen(viewModel: UserViewModel = hiltViewModel()) {
-//    val users = viewModel.userStates
-//    val isLoading = viewModel.userStates.let { UiStates.Loading }
-//    val error = viewModel.userStates
-
-    viewModel.userStates.let { it ->
-        when (it) {
-            is UiStates.Loading -> {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator()
+fun UserScreen(
+    viewModel: UserViewModel = hiltViewModel(),
+    onUserClick: (User) -> Unit
+) {
+    when (val state = viewModel.userStates) {
+        is UiStates.Loading -> CircularProgressIndicator()
+        is UiStates.Success -> {
+            LazyColumn {
+                items(state.data) { user ->
+                    UserItem(user, onClick = { onUserClick(user) })
                 }
-            }
-
-            is UiStates.Success -> {
-                LazyColumn {
-                    items(it.data) { user ->
-                        UserItem(user)
-                    }
-                }
-            }
-            is UiStates.Error -> {
-                Text(text = "Error : ${it.error}", color = androidx.compose.ui.graphics.Color.Red)
             }
         }
+        is UiStates.Error -> Text("Error: ${state.error}")
     }
-
-//    if (isLoading.) {
-//        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-//            CircularProgressIndicator()
-//        }
-//    } else if (error != null) {
-//        Text(text = "Error : $error", color = androidx.compose.ui.graphics.Color.Red)
-//    } else {
-//        LazyColumn {
-//            items(users) { user ->
-//                UserItem(user)
-//            }
-//        }
-//    }
-
 }
 
+
 @Composable
-fun UserItem(user: User) {
+fun UserItem(user: User, onClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp), elevation = 4.dp
+            .padding(8.dp)
+            .clickable{onClick()}, elevation = 4.dp
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = "Name: ${user.name}")
